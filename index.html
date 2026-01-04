@@ -341,6 +341,35 @@
                     </div>
                 </div>
 
+                <!-- eSIM comparison partial will be injected here -->
+                <div id="esim-partial" class="esim-partial"></div>
+                <script>
+                (function(){
+                  // Load the component HTML and execute its scripts so the partial behaves like an included template
+                  function runScripts(container){
+                    var scripts = Array.from(container.querySelectorAll('script'));
+                    scripts.forEach(function(old){
+                      var s = document.createElement('script');
+                      if(old.src) s.src = old.src;
+                      else s.textContent = old.textContent;
+                      document.body.appendChild(s);
+                      old.parentNode.removeChild(old);
+                    });
+                  }
+
+                  fetch('components/esim-comparison-card.html')
+                    .then(function(r){ if(!r.ok) throw new Error('Network error'); return r.text(); })
+                    .then(function(html){
+                      var container = document.getElementById('esim-partial');
+                      if(!container) return;
+                      container.innerHTML = html;
+                      runScripts(container);
+                    }).catch(function(){
+                      // silently fail - component is non-critical
+                    });
+                })();
+                </script>
+
                 <div class="app-alternatives">
                     <h3>📱 Chinese App Alternatives</h3>
                     <div class="app-grid">
