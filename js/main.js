@@ -747,9 +747,57 @@ function createVideoCard(video) {
     return card;
 }
 
-// Play video (opens in new tab due to YouTube restrictions)
+// Play video (inline modal iframe)
+function ensureYouTubeModal() {
+    if (document.getElementById('yt-modal')) return;
+    // create styles
+    const css = `
+        #yt-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; z-index: 10000; }
+        #yt-modal .yt-container { width: 90%; max-width: 960px; background: transparent; position: relative; padding-top: 56.25%; }
+        #yt-modal iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
+        #yt-modal .yt-close { position: absolute; right: 10px; top: 10px; z-index: 10001; background: rgba(255,255,255,0.9); border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+    `;
+    const s = document.createElement('style');
+    s.textContent = css;
+    document.head.appendChild(s);
+
+    const modal = document.createElement('div');
+    modal.id = 'yt-modal';
+    modal.innerHTML = `
+        <div class="yt-container">
+            <iframe id="yt-iframe" src="" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+            <button id="yt-close" class="yt-close">Close</button>
+        </div>
+    `;
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeYouTubeModal();
+    });
+
+    document.body.appendChild(modal);
+
+    document.getElementById('yt-close').addEventListener('click', closeYouTubeModal);
+
+    document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape') closeYouTubeModal();
+    });
+}
+
 function playVideo(videoId) {
-    window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
+    ensureYouTubeModal();
+    const iframe = document.getElementById('yt-iframe');
+    // use privacy-enhanced domain and autoplay
+    iframe.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(videoId) + '?rel=0&autoplay=1';
+    document.getElementById('yt-modal').style.display = 'flex';
+    // Stop auto-rotation while video plays
+    stopAutoRotate();
+}
+
+function closeYouTubeModal(){
+    const iframe = document.getElementById('yt-iframe');
+    if (iframe) iframe.src = '';
+    const modal = document.getElementById('yt-modal');
+    if (modal) modal.style.display = 'none';
 }
 
 // Toggle bookmark
